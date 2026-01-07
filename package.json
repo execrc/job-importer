@@ -1,0 +1,17 @@
+{
+    "name": "job-importer",
+    "version": "1.0.0",
+    "private": true,
+    "scripts": {
+        "dev": "concurrently \"pnpm --filter server dev\" \"pnpm --filter client dev\"",
+        "build": "pnpm --filter server build && pnpm --filter client build",
+        "test": "pnpm --filter server test",
+        "lint": "biome check .",
+        "lint:fix": "biome check --write .",
+        "format": "biome format --write ."
+    },
+    "devDependencies": {
+        "@biomejs/biome": "^2.3.11",
+        "concurrently": "^9.2.1"
+    }
+}
