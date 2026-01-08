@@ -1,0 +1,9 @@
+[build]
+builder = "railpacks"
+buildCommand = "cd server && pnpm install --frozen-lockfile && pnpm build"
+
+[deploy]
+startCommand = "cd server && node dist/index.js"
+restartPolicyType = "on-failure"
+restartPolicyMaxRetries = 10
+    
