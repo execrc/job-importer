@@ -1,0 +1,72 @@
+services:
+  # MongoDB for local development
+  mongodb:
+    image: mongo:7
+    container_name: job-importer-mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: job-importer
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis for local development
+  redis:
+    image: redis:7-alpine
+    container_name: job-importer-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend server
+  server:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    container_name: job-importer-server
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - MONGODB_URI=mongodb://mongodb:27017/job-importer
+      - REDIS_URL=redis://redis:6379
+      - WORKER_CONCURRENCY=5
+      - BATCH_SIZE=100
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # Frontend client
+  client:
+    build:
+      context: .
+      dockerfile: client/Dockerfile
+      args:
+        - NEXT_PUBLIC_API_URL=http://localhost:3001
+    container_name: job-importer-client
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+    depends_on:
+      - server
+    restart: unless-stopped
+
+volumes:
+  mongodb_data:
+  redis_data:
